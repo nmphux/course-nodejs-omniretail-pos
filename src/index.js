@@ -15,11 +15,15 @@ const bycrypt = require('bcrypt');
 app.use(morgan('tiny'));
 
 // ** Session **
-app.use(session({
-  secret: 'secRet-KeY',
-  resave: false,
-  saveUninitialized: true,
-}));
+app.use(
+  session({
+    name: 'omniretail.sid',
+    secret: process.env.SESSION_SECRET || 'omniretail-secure-session-key',
+    resave: false,
+    saveUninitialized: false,
+    // store: MongoStore.create({ mongoUrl: ... })
+  }),
+);
 
 // ** Flash **
 app.use(flash());
@@ -28,29 +32,27 @@ app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ** Template engine **
-app.engine('.hbs', engine({ 
-  extname: '.hbs',
-  helpers: require('./utils/helpers')
- }));
+app.engine(
+  '.hbs',
+  engine({
+    extname: '.hbs',
+    helpers: require('./utils/helpers'),
+  }),
+);
 app.set("view engine', '.hbs");
 app.set('views', path.join(__dirname, 'resources', 'views'));
 
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 // ** Connect to DB **
 db.connect();
 
 // ** router
 route(app);
-
-
-
-
-
 
 app.listen(port, () => {
   console.log(`The application is listening at http://localhost:${port}, press Ctrl+C to quit.`);

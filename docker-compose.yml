@@ -7,7 +7,7 @@ services:
     ports:
       - 27017:27017
     environment:
-      - MONGO_INITDB_DATABASE=point_of_sale
+      - MONGO_INITDB_DATABASE=omniretail_db
     volumes:
       - db:/data/db
 

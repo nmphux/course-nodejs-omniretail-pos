@@ -29,9 +29,9 @@ const sendEmail = (recipientEmail, name) => {
     });
 
     const mailOptions = {
-        from: 'Digital World Assistant <nodejsadmtest@gmail.com>',
-        to: recipientEmail,
-        subject: 'Set up your DWA account!',
+        from: `"OmniRetail System" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: 'Invitation to Join OmniRetail Platform',
         html: html,
     };
 

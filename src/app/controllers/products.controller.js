@@ -1,5 +1,5 @@
 const productModel = require("../models/products.model");
-const { createCanvas } = require('canvas');
+const { createCanvas } = require('@napi-rs/canvas');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');

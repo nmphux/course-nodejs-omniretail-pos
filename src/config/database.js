@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const connect = async () => {
   try {
-    await mongoose.connect('mongodb://localhost:27017/point_of_sale', {
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/omniretail_db';
+    await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
