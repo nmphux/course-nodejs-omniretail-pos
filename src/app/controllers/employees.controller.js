@@ -196,7 +196,7 @@ class EmployeesController {
                 data: {}
             });
         }
-        let avatar = `/images/avatar/${req.file.filename}`;
+        let avatar = `/uploads/avatar/${req.file.filename}`;
         let oldPath = req.session.user.avtImage;
         if (!oldPath) {
             // fs.unlinkSync(`./src/public${req.session.user.avatar}`);

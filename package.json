@@ -2,10 +2,10 @@
   "name": "omniretail-pos",
   "version": "1.0.0",
   "description": "Multi-store, multi-national retail POS platform",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "nodemon --inspect ./src/index.js",
-    "watch": "sass --watch src/resources/scss/app.scss:src/public/styles/style.css",
+    "watch": "sass --watch src/resources/scss/app.scss:src/public/assets/styles/style.css",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky"
   },

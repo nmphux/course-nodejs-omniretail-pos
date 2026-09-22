@@ -14,8 +14,10 @@ function generateToken(email) {
     return crypto.createHash('sha256').update(email).digest('hex');
 }
 
-const sendEmail = (recipientEmail, name) => {
-    const _linkData = `href="http://localhost:3000/admin/extra/c?token=${generateToken(recipientEmail)}" data-saferedirecturl="http://localhost:3000/admin/extra/c?token=${generateToken(recipientEmail)}"`;
+const sendEmail = async (recipientEmail, name) => {
+    const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+    const invitationUrl = `${appBaseUrl}/admin/extra/c?token=${generateToken(recipientEmail)}`;
+    const _linkData = `href="${invitationUrl}" data-saferedirecturl="${invitationUrl}"`;
     const html = fs.readFileSync(path.join(__dirname, '../../public/gmail.html'), 'utf8').replace('${_name}', name).replace('${_linkData}', _linkData);
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -23,25 +25,19 @@ const sendEmail = (recipientEmail, name) => {
         port: 465,
         secure: true,
         auth: {
-            user: 'nodejsadmtest@gmail.com',
-            pass: 'mkrz svbx fekp dqyz',
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
         },
     });
 
     const mailOptions = {
         from: `"OmniRetail System" <${process.env.SMTP_USER}>`,
-        to: email,
+        to: recipientEmail,
         subject: 'Invitation to Join OmniRetail Platform',
         html: html,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
+    return transporter.sendMail(mailOptions);
 };
 
 
@@ -479,7 +475,7 @@ class AdminController {
                 data: {}
             });
         }
-        let avatar = `/images/avatar/${req.file.filename}`;
+        let avatar = `/uploads/avatar/${req.file.filename}`;
         let oldPath = req.session.user.avtImage;
         if (!oldPath) {
             // fs.unlinkSync(`./src/public${req.session.user.avatar}`);

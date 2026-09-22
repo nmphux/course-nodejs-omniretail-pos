@@ -5,11 +5,10 @@ const session = require('express-session');
 const flash = require('express-flash');
 const path = require('path');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const route = require('./routes/index');
-const db = require('./config/db');
+const db = require('./config/database');
 const bodyParser = require('body-parser');
-const bycrypt = require('bcrypt');
 
 // ** HTTP logger **
 app.use(morgan('tiny'));
@@ -29,7 +28,8 @@ app.use(
 app.use(flash());
 
 // ** Static files **
-app.use(express.static(path.join(__dirname, 'public')));
+const publicDirectory = path.join(__dirname, 'public');
+app.use(express.static(publicDirectory));
 
 // ** Template engine **
 app.engine(
@@ -39,7 +39,7 @@ app.engine(
     helpers: require('./utils/helpers'),
   }),
 );
-app.set("view engine', '.hbs");
+app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'resources', 'views'));
 
 // parse application/x-www-form-urlencoded
@@ -48,12 +48,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-// ** Connect to DB **
-db.connect();
-
 // ** router
 route(app);
 
-app.listen(port, () => {
-  console.log(`The application is listening at http://localhost:${port}, press Ctrl+C to quit.`);
+const start = async () => {
+  await db.connect();
+  app.listen(port, () => {
+    console.log(`The application is listening at http://localhost:${port}, press Ctrl+C to quit.`);
+  });
+};
+
+start().catch((error) => {
+  console.error('\nUnable to start the application:', error);
+  process.exitCode = 1;
 });

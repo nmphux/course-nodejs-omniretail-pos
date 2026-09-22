@@ -4,12 +4,17 @@ const employeesController = require('../app/controllers/employees.controller');
 
 const checkoutController = require('../app/controllers/checkout.controller');
 const orderController = require('../app/controllers/order.controller');
+const fs = require('fs');
+const path = require('path');
+
+const avatarUploadPath = path.resolve(__dirname, '../public/uploads/avatar');
 
 // file upload config
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, './src/public/images/avatar');
+        fs.mkdirSync(avatarUploadPath, { recursive: true });
+        cb(null, avatarUploadPath);
     },
     filename: function(req, file, cb) {
         cb(null, `${req.session.user.email || "newImg"}.png`); // if the extension is not png, it will be converted to png

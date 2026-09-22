@@ -41,7 +41,7 @@ class OrderController {
 
     // [POST] /employee/order/create
     createOrder = async (req, res) => {
-        const { productsData, totalAll } = req.body;
+        const { productsData } = req.body;
         
         const salesperson = req.session.user;
         if (!salesperson) {
@@ -51,28 +51,92 @@ class OrderController {
                 data: { },
             });
         }
-        const newOrder = new orderModel({
-            customerId: null,
-            products: productsData,
-            totalAll: totalAll,
-            createdBy: salesperson._id,
-        });
+
+        if (!Array.isArray(productsData) || productsData.length === 0) {
+            return res.status(400).json({
+                status: false,
+                message: "An order must contain at least one product",
+                data: { },
+            });
+        }
+
         try {
-            await newOrder.save();
-            const orderId = newOrder._id;
+            const trustedProducts = [];
+            const productsInDb = [];
+            const productIds = new Set();
+            let totalInCents = 0;
+
             for (const product of productsData) {
-                const { productId, productName } = product;
+                if (!product || typeof product !== "object") {
+                    return res.status(400).json({
+                        status: false,
+                        message: "Invalid product",
+                        data: { },
+                    });
+                }
+
+                const quantity = Number(product.quantity);
+                if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+                    return res.status(400).json({
+                        status: false,
+                        message: "Product quantity must be an integer between 1 and 100",
+                        data: { },
+                    });
+                }
+
+                const productId = String(product.productId || "");
+                if (!productId || productIds.has(productId)) {
+                    return res.status(400).json({
+                        status: false,
+                        message: "Each product may only appear once in an order",
+                        data: { },
+                    });
+                }
+                productIds.add(productId);
+
+                // Reuse the product read that was already needed to set beenPurchased.
+                // Client-provided product names and totals are never persisted.
                 const productInDb = await productModel.findOne({ _id: productId });
                 if (!productInDb) {
                     return res.status(400).json({
                         status: false,
-                        message: `Product ${productName} not found`,
+                        message: "Product not found",
                         data: { },
                     });
-                } else {
-                    productInDb.beenPurchased = true;
-                    await productInDb.save();
                 }
+
+                const priceInCents = Math.round(Number(productInDb.retailPrice) * 100);
+                if (!Number.isSafeInteger(priceInCents) || priceInCents < 0) {
+                    throw new Error(`Invalid retail price for product ${productId}`);
+                }
+
+                const lineTotalInCents = priceInCents * quantity;
+                if (!Number.isSafeInteger(lineTotalInCents) || !Number.isSafeInteger(totalInCents + lineTotalInCents)) {
+                    throw new Error("Order total exceeds the supported amount");
+                }
+
+                totalInCents += lineTotalInCents;
+                trustedProducts.push({
+                    productId: productInDb._id,
+                    productName: productInDb.name,
+                    quantity,
+                    totalOne: lineTotalInCents / 100,
+                });
+                productsInDb.push(productInDb);
+            }
+
+            const newOrder = new orderModel({
+                customerId: null,
+                products: trustedProducts,
+                totalAll: totalInCents / 100,
+                createdBy: salesperson._id,
+            });
+
+            await newOrder.save();
+            const orderId = newOrder._id;
+            for (const productInDb of productsInDb) {
+                productInDb.beenPurchased = true;
+                await productInDb.save();
             }
             return res.json({
                 status: true,
@@ -81,6 +145,12 @@ class OrderController {
             });
         } catch (error) {
             console.log(error);
+            const status = error.name === "CastError" ? 400 : 500;
+            return res.status(status).json({
+                status: false,
+                message: status === 400 ? "Invalid product" : "Could not create order",
+                data: { },
+            });
         }
     }
     // [GET] /employee/customer/history/:phone

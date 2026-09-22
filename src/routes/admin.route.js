@@ -2,20 +2,27 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../app/controllers/admin.controller');
 const productsController = require('../app/controllers/products.controller');
+const fs = require('fs');
+const path = require('path');
+
+const uploadsRoot = path.resolve(__dirname, '../public/uploads');
+
+const uploadDestination = (folder) => (req, file, cb) => {
+    const destination = path.join(uploadsRoot, folder);
+    fs.mkdirSync(destination, { recursive: true });
+    cb(null, destination);
+};
+
 // file upload config
 const multer = require('multer');
 const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './src/public/images/pdThumbs');
-    },
+    destination: uploadDestination('product_thumb'),
     filename: function(req, file, cb) {
         cb(null, `${req.body.pcode || "newImg"}.png`); // if the extension is not png, it will be converted to png
     }
 });
 const storageAvt = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './src/public/images/avatar');
-    },
+    destination: uploadDestination('avatar'),
     filename: function(req, file, cb) {
         cb(null, `${req.session.user.email || "newImg"}.png`); // if the extension is not png, it will be converted to png
     }
@@ -126,7 +133,7 @@ router.get('/account', adminController.account);
 router.get('/account/:email', adminController.detailAccount);
 
 // [POST] /admin/changeAvatar
-router.post('/changeAvatar', upload.single("avatar"), handleFileUploadError, adminController.changeAvatar);
+router.post('/changeAvatar', uploadAvt.single("avatar"), handleFileUploadError, adminController.changeAvatar);
 
 
 

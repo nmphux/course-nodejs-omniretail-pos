@@ -1004,9 +1004,6 @@ body {
     padding: 60px 0px;
     margin: 30px 0px;
     background-color: #E4E7ED;
-    background-image: url('../img/hotdeal.png');
-    background-position: center;
-    background-repeat: no-repeat;
   }
   
   .hot-deal {
@@ -2604,17 +2601,11 @@ body {
   /*=========================================================
       16 -> CART
   ===========================================================*/
-  @font-face {
-    font-family: ephesis;
-    src: url(/fonts/Ephesis-Regular.ttf);
-    font-style: normal;
-    font-weight: 400;
-  }
   #message-dialog .modal-dialog .modal-header h4 {
     display: inline-block;
   }
   .header-banner {
-    font-family: Ephesis, sans-serif;
+    font-family: cursive;
     font-size: 5em;
     background: #E4E7ED;
     text-transform: lowercase;
@@ -2669,8 +2660,7 @@ body {
     }
   }
   #cart .table .bg-i{
-    background: url("/images/cart.svg") no-repeat center;
-    background-position-y: -150%;
+    background-color: var(--bg-primary-color);
     height: 250px;
   }
   #cart .table tbody tr td .form-control {
@@ -2773,11 +2763,6 @@ body {
       19 -> ERROR
   ===========================================================*/
   #error .container .error-i {
-    background-image: url("/images/error.svg");
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position-x: 100%;
-    background-position-y: 5px;
     min-height: 400px;
   }
   @media (max-width: 768px){

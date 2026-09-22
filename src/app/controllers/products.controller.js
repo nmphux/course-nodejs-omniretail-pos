@@ -2,8 +2,12 @@ const productModel = require("../models/products.model");
 const { createCanvas } = require('@napi-rs/canvas');
 const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcrypt');
 const JsBarcode = require("jsbarcode");
+const publicDirectory = path.resolve(__dirname, '../../public');
+
+function resolveAssetPath(assetUrl) {
+    return path.join(publicDirectory, assetUrl.replace(/^\/+/, ''));
+}
 
 function genBarcode(code) {
     const canvas = createCanvas(200, 200);
@@ -15,8 +19,9 @@ function genBarcode(code) {
     });
 
     const buffer = canvas.toBuffer('image/png');
-    const srcPath = path.resolve(__dirname, '../..'); // D:\University\NodeJS\Final-project\Node new\nodejs-finalproject\src
-    fs.writeFileSync(srcPath + `/public/images/barcode/${code}.png`, buffer);
+    const barcodeDirectory = path.join(publicDirectory, 'uploads', 'barcode');
+    fs.mkdirSync(barcodeDirectory, { recursive: true });
+    fs.writeFileSync(path.join(barcodeDirectory, `${code}.png`), buffer);
 }
 
 class ProductController {
@@ -53,7 +58,6 @@ class ProductController {
             beenPurchased: false,
             image: '',
         });
-        // req.file ? `/images/pdThumbs/${req.file.filename}` : null
         var barcode = '';
         try {
             const result = await newProduct.save();
@@ -74,14 +78,14 @@ class ProductController {
             var file = req.file;
             var imgPath = '';
             if (file) {
-                imgPath = `/images/pdThumbs/${req.file.filename}`;
+                imgPath = `/uploads/product_thumb/${req.file.filename}`;
                 if (!pcode){ // if there is no pcode, then rename the image file to the objectID
                     fs.renameSync(file.path, file.destination + `/${barcode}.png`);
-                    imgPath = `/images/pdThumbs/${barcode}.png`;
+                    imgPath = `/uploads/product_thumb/${barcode}.png`;
                 }
             }
 
-            const barcodeImgPath = `/images/barcode/${barcode}.png`;
+            const barcodeImgPath = `/uploads/barcode/${barcode}.png`;
 
             await productModel.updateOne({ _id: objectID }, { 
                 barcode: barcode,
@@ -142,7 +146,7 @@ class ProductController {
             category: req.body.category,
         }
         if (req.file) {
-            newData.image = `/images/pdThumbs/${req.file.filename}`;
+            newData.image = `/uploads/product_thumb/${req.file.filename}`;
         }
         
         // await productModel.findOne({ _id: barcode }).then(async (prd) => {
@@ -184,11 +188,16 @@ class ProductController {
                 if (!delPrd) {
                     return res.status(400).json({ message: 'Product not found' });
                 }
-                const srcPath = path.resolve(__dirname, '../../public'); // D:\University\NodeJS\Final-project\Node new\nodejs-finalproject\public
                 if (prdObj.image && prdObj.image != '') {
-                    fs.unlinkSync(srcPath + prdObj.image);
+                    const imagePath = resolveAssetPath(prdObj.image);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
                 }
-                fs.unlinkSync(srcPath + prdObj.barcodeImg);
+                const barcodePath = resolveAssetPath(prdObj.barcodeImg);
+                if (fs.existsSync(barcodePath)) {
+                    fs.unlinkSync(barcodePath);
+                }
                 // Trả về phản hồi cho client-side
                 return res.json({
                     status: true,

@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="./styles/form.css">
+<link rel="stylesheet" href="/assets/styles/form.css">
 <style>
   .avt-img {
     max-width: 60px;
@@ -80,7 +80,7 @@
                   <td>
                     <div class="d-flex justify-content-center align-items-center">
                       {{#if (equals avtImage "")}}
-                        <img src="/images/avatar/empty.png" alt="" class="avt-img">
+                        <img src="/assets/images/default_avatar.png" alt="" class="avt-img">
                       {{else}}
                         <img src="{{avtImage}}" alt="" class="avt-img">
                       {{/if}}
@@ -121,4 +121,4 @@
   </div>
 </section>
 
-<script src='/js/adminPage.js'></script>
+<script src='/assets/js/adminPage.js'></script>
